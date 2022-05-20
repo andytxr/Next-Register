@@ -3,21 +3,18 @@ import Layout from '../components/Layout';
 import Table from '../components/Table';
 import Client from '../core/Client';
 import Form from '../components/Form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import ClientRepo from '../core/ClientRepo';
+import ClientCollection from '../backend/db/ClientCollection';
 
 export default function Home() {
 
+  let repo: ClientRepo = new ClientCollection()
   let [client, setClient] = useState<Client>(Client.voidClient())
+  let [clients, setClients] = useState<Client[]>([])
   let [visible, setVisible] = useState<"table" | "form">("table");
 
-  let clients = [
-
-    new Client('Deco', 18, '1'),
-    new Client('Jhenny', 18, '2'),
-    new Client('Bia', 19, '3'),
-    new Client('Julia', 18, '4'),
-
-  ]
+  useEffect(getAll, [])
 
   function selectedClient(client: Client){
 
@@ -26,7 +23,16 @@ export default function Home() {
 
   }
 
-  function removedClient(client: Client){}
+  function getAll(){
+
+    repo.getAll().then(clients=>{
+
+      setClients(clients);
+      setVisible("table");
+
+    })
+
+  }
 
   function newClient(client: Client){
 
@@ -35,9 +41,17 @@ export default function Home() {
 
   }
 
-  function saveClient(client: Client){
+  async function removedClient(client: Client){
 
-    setVisible("table");
+    await repo.remove(client);
+    getAll();
+
+  }
+
+  async function saveClient(client: Client){
+
+    await repo.save(client);
+    getAll();
 
   }
 
